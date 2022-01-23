@@ -1,0 +1,1 @@
+ALTER TABLE birthday ADD COLUMN blob BYTEA;
