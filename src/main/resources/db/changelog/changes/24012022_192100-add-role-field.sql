@@ -1,0 +1,1 @@
+ALTER TABLE birthday ADD COLUMN role VARCHAR(50);
