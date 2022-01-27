@@ -1,12 +1,13 @@
 package com.example.api.students.service;
 
-import com.example.api.students.model.Role;
 import com.example.api.students.dto.BirthdayDTO;
 import com.example.api.students.model.Birthday;
+import com.example.api.students.model.Role;
 import com.example.api.students.repository.BirthdayRepository;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.MonthDay;
 import java.util.List;
@@ -22,6 +23,18 @@ public class BirthdaysService {
 
     public BirthdaysService(BirthdayRepository birthdayRepository) {
         this.birthdayRepository = birthdayRepository;
+    }
+
+    /**
+     * Получить запись о дне рождения по его идентификатору
+     *
+     * @param id айди записи
+     */
+    public BirthdayDTO getBirthdayById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Введите айди записи.");
+        }
+        return birthdayRepository.findById(id).map(BirthdaysService::buildDto).orElseGet(BirthdayDTO::new);
     }
 
     /**
@@ -75,7 +88,7 @@ public class BirthdaysService {
         birthdayRecord.setName(newBirthday.getName());
         birthdayRecord.setDate(LocalDate.parse(newBirthday.getDate()));
         birthdayRecord.setRole(Role.fromValue(newBirthday.getRole()));
-        birthdayRecord.setPhoto(newBirthday.getPhoto());
+        addPhoto(newBirthday, birthdayRecord);
 
         birthdayRepository.save(birthdayRecord);
     }
@@ -96,10 +109,11 @@ public class BirthdaysService {
         birthdayRecord.setName(newBirthday.getName());
         birthdayRecord.setDate(LocalDate.parse(newBirthday.getDate()));
         birthdayRecord.setRole(Role.fromValue(newBirthday.getRole()));
-        birthdayRecord.setPhoto(newBirthday.getPhoto());
+        addPhoto(newBirthday, birthdayRecord);
 
         return birthdayRepository.save(birthdayRecord);
     }
+
 
     /**
      * Удалить запись о дне рождения по его идентификатору
@@ -115,6 +129,39 @@ public class BirthdaysService {
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Запись с id %s не найдена!", birthdayId)));
 
         birthdayRepository.deleteById(birthdayId);
+    }
+
+    /**
+     * Логика по добавлению фото
+     *
+     * @param newBirthday    новые данные
+     * @param birthdayRecord куда сохраняем
+     */
+    private static void addPhoto(BirthdayDTO newBirthday, Birthday birthdayRecord) {
+        if (newBirthday.getPhoto() != null) {
+            try {
+                byte[] decode = newBirthday.getPhoto().split(",")[1].getBytes(StandardCharsets.UTF_8);
+                birthdayRecord.setPhoto(decode);
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Загружен некорректный файл.");
+            }
+        }
+    }
+
+    /**
+     * Логика по получению фото
+     *
+     * @param mainRecord откуда достаем
+     * @param dto        куда передаем
+     */
+    private static void getPhoto(Birthday mainRecord, BirthdayDTO dto) {
+        if (mainRecord.getPhoto() != null) {
+            try {
+                dto.setPhoto("data:image/png;base64," + new String(mainRecord.getPhoto(), StandardCharsets.UTF_8));
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Что-то пошло не так при выгрузке фото из базы данных.");
+            }
+        }
     }
 
     /**
@@ -142,13 +189,20 @@ public class BirthdaysService {
         }
     }
 
+    /**
+     * Превратить модель в DTO
+     *
+     * @param birthday модель
+     *
+     * @return Data Transfer Object
+     */
     private static BirthdayDTO buildDto(Birthday birthday) {
         BirthdayDTO birthdayDTO = new BirthdayDTO();
         birthdayDTO.setId(birthday.getId());
         birthdayDTO.setName(birthday.getName());
         birthdayDTO.setDate(birthday.getDate().toString());
         birthdayDTO.setRole(birthday.getRole().toString());
-        birthdayDTO.setPhoto(birthday.getPhoto());
+        getPhoto(birthday, birthdayDTO);
         return birthdayDTO;
     }
 }

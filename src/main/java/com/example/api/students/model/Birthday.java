@@ -5,6 +5,9 @@ import lombok.*;
 import javax.persistence.*;
 import java.time.LocalDate;
 
+/**
+ * Сущность предметной области - День рождение
+ */
 @Entity
 @Table(name = "birthday")
 @Getter
@@ -15,17 +18,12 @@ import java.time.LocalDate;
 public class Birthday {
 
     @Id
-    @SequenceGenerator(name = "student_sequence", sequenceName = "student_sequence")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "student_sequence")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column
     private Long id;
 
     private String name;
     private LocalDate date;
     private Role role;
     private byte[] photo;
-
-    public Birthday(String name, LocalDate date) {
-        this.name = name;
-        this.date = date;
-    }
 }

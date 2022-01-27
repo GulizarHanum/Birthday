@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import java.util.Arrays;
 
+/**
+ * Роль отношений
+ */
 public enum Role {
 
     FRIEND("FRIEND"), //друг

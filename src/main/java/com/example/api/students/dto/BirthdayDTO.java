@@ -2,6 +2,9 @@ package com.example.api.students.dto;
 
 import lombok.Data;
 
+/**
+ * Класс с данными для отправки на презентацию (Data Transfer Object)
+ */
 @Data
 public class BirthdayDTO {
 
@@ -9,5 +12,5 @@ public class BirthdayDTO {
     private String name;
     private String date;
     private String role;
-    private byte[] photo;
+    private String photo;
 }
